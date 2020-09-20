@@ -2,6 +2,7 @@ import { Resolver, Ctx, Arg, Mutation, ObjectType, Field, InputType, Query } fro
 import { User } from 'src/entities/User';
 import { MyContext } from 'src/types';
 import argon from 'argon2';
+import { EntityManager } from '@mikro-orm/postgresql';
 
 @InputType()
 class UsernamePasswordInput {
@@ -70,11 +71,22 @@ export class UserResolver {
             }
         }
         const hashedPassword = await argon.hash(options.password);
-        const user = em.create(User, { username: options.username, password: hashedPassword });
+        let user;
+        const result = await (em as EntityManager)
+            .createQueryBuilder(User)
+            .getKnexQuery()
+            .insert({
+                username: options.username,
+                password: hashedPassword,
+                created_at: new Date(),
+                updated_at: new Date()
+            })
+            .returning('*');
+        user = result[0];
         try {
             await em.persistAndFlush(user);
         } catch (e) {
-            if (e.code === '23505') {
+            if (e.detail.includes('already exists')) {
                 return {
                     errors: [
                         {

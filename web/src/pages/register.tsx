@@ -4,6 +4,8 @@ import { FormControl, FormLabel, Input, FormErrorMessage, Box, Button } from '@c
 import Wrapper from '../components/wrapper';
 import Inputfield from '../components/inputfield';
 import { useMutation } from 'urql';
+import { toErrorMap } from '../utils/toErrorMap';
+import { useRouter } from 'next/router';
 
 interface registerProps {
 
@@ -25,12 +27,18 @@ const REGISTER_MUTATION = `
 `
 
 const Register: React.FC<registerProps> = ({ }) => {
-    const [, register] = useMutation(REGISTER_MUTATION);
+    const router = useRouter();
+    const [, register] = useMutation(REGISTER_MUTATION); // useRegisterMutation from generated
     return (
         <Wrapper variant="small">
             <Formik initialValues={{ username: '', password: '' }}
-                onSubmit={(values) => {
-                    return register(values);
+                onSubmit={async (values, {setErrors}) => {
+                    const response = await register(values);
+                    if(response.data?.register.errors) {
+                        setErrors(toErrorMap(response.data.register.errors))
+                    } else if(response.data.register.user) {
+                        router.push('/');
+                    }
                 }}>
                 {({ isSubmitting }) => (
                     <Form>
