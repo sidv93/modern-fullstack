@@ -22,7 +22,7 @@ const client = createClient({
         updates: {
             Mutation: {
                 login: (_result, args, cache, info) => {
-                    betterUpdateQuery < LoginMutation, MeQuery>(
+                    betterUpdateQuery<LoginMutation, MeQuery>(
                         cache,
                         { query: MeDocument },
                         _result,
@@ -38,7 +38,7 @@ const client = createClient({
                     )
                 },
                 register: (_result, args, cache, info) => {
-                    betterUpdateQuery <RegisterMutation, MeQuery>(
+                    betterUpdateQuery<RegisterMutation, MeQuery>(
                         cache,
                         { query: MeDocument },
                         _result,
@@ -51,6 +51,14 @@ const client = createClient({
                                 }
                             }
                         }
+                    )
+                },
+                logout: (_result, args, cache, info) => {
+                    betterUpdateQuery<LogoutMutation, MeQuery>(
+                        cache,
+                        { query: MeDocument },
+                        _result,
+                        (result, query) => ({ me: null })
                     )
                 }
             }
